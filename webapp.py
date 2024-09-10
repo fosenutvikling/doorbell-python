@@ -110,6 +110,10 @@ async def check_initial_connection():
     except Exception as e:
         connection_error = f"Failed to connect to WebSocket: {str(e)}"
 
+def restart_service():
+    """Restart the ringeklokke service to apply changes in config.json."""
+    os.system('sudo systemctl restart ringeklokke.service')
+
 @app.route('/')
 def index():
     config = load_config()
@@ -132,7 +136,12 @@ def update_config():
             'sound': button_sound
         })
 
+    config['buttons'] = buttons
     save_config(config)
+
+    # Restart the ringeklokke service to apply changes
+    restart_service()
+
     return redirect(url_for('index'))
 
 @app.route('/start_websocket', methods=['POST'])
