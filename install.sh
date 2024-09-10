@@ -72,8 +72,33 @@ EOF
 # Oppdater systemd og aktiver tjenesten
 sudo systemctl daemon-reload
 sudo systemctl enable ringeklokke.service
-sudo systemctl restart ringeklokke.service
-echo "Ringeklokke service er installert og startet."
+echo "Ringeklokke service er installert, men vil ikke bli startet automatisk."
+
+# Opprett systemd-tjeneste for webapp.py
+WEBAPP_SERVICE_FILE=/etc/systemd/system/webapp.service
+
+echo "Oppretter systemd-tjenesten for webapp.py..."
+sudo bash -c "cat > $WEBAPP_SERVICE_FILE" <<EOF
+[Unit]
+Description=Web App Service
+After=network.target
+
+[Service]
+User=$CURRENT_USER
+WorkingDirectory=$(pwd)
+ExecStart=$(pwd)/ringeklokke_env/bin/python3 $(pwd)/webapp.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Oppdater systemd og start webapp-tjenesten
+sudo systemctl daemon-reload
+sudo systemctl enable webapp.service
+sudo systemctl start webapp.service
+echo "Webapp service er installert og startet."
 
 # Opprett start_webapp.sh skriptet
 cat <<EOL > start_webapp.sh
