@@ -89,6 +89,7 @@ WorkingDirectory=$(pwd)
 ExecStart=$(pwd)/ringeklokke_env/bin/python3 $(pwd)/webapp.py
 Restart=always
 RestartSec=5
+Nice=-10
 
 [Install]
 WantedBy=multi-user.target

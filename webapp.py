@@ -9,7 +9,9 @@ import os
 from datetime import datetime
 
 # Initialize pygame mixer at the start of the script
+pygame.mixer.pre_init(44100, -16, 2, 2048)
 pygame.mixer.init()
+
 
 app = Flask(__name__)
 socketio = SocketIO(app)  # Initialize SocketIO with Flask
