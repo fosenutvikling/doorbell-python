@@ -1,5 +1,22 @@
 # Raspberry Pi
 
+## Install
+```
+wget https://raw.githubusercontent.com/fosenutvikling/doorbell-python/main/install.sh
+chmod +x install.sh
+./install.sh
+```
+
+```
+sudo systemctl start ringeklokke.service    # Start service
+sudo systemctl stop ringeklokke.service     # Stop service
+sudo systemctl status ringeklokke.service   # Check service
+sudo systemctl restart ringeklokke.service  # Restart service
+```
+
+
+
+# Old readme
 Trinn 1: Forberedelse på Raspberry Pi
 Installer Raspbian (Raspberry Pi OS):
 

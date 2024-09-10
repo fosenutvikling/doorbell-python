@@ -6,14 +6,29 @@ sudo apt update && sudo apt upgrade -y
 # Installer nødvendige pakker
 sudo apt install -y python3 python3-pip python3-venv git
 
+# Klon prosjektet fra GitHub (erstatt URL-en med din repo's URL)
+# Sjekk om prosjektmappen allerede eksisterer for å unngå problemer ved flere kjøringer.
+REPO_URL="https://github.com/fosenutvikling/doorbell-python.git"
+PROJECT_DIR="doorbell-python"
+
+if [ -d "$PROJECT_DIR" ]; then
+    echo "Prosjektmappen finnes allerede. Oppdaterer prosjektet..."
+    cd $PROJECT_DIR
+    git pull
+else
+    echo "Klone prosjektet fra GitHub..."
+    git clone $REPO_URL
+    cd $PROJECT_DIR
+fi
+
 # Lag et virtuelt miljø
 python3 -m venv ringeklokke_env
 source ringeklokke_env/bin/activate
 
-# Installer Python-avhengigheter
+# Installer nødvendige Python-pakker fra requirements.txt
 pip install -r requirements.txt
 
-# Sett opp systemd-tjeneste for ringeklokke.py
+# Opprett systemd-tjeneste for ringeklokke.py
 SERVICE_FILE=/etc/systemd/system/ringeklokke.service
 
 sudo bash -c "cat > $SERVICE_FILE" <<EOF
