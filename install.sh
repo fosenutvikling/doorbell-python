@@ -49,13 +49,11 @@ pip install -r requirements.txt
 # Dynamisk finn brukernavnet som kjører skriptet
 CURRENT_USER=$(whoami)
 
-# Opprett systemd-tjeneste for ringeklokke.py med dynamisk brukernavn
+# Opprett eller oppdater systemd-tjeneste for ringeklokke.py med dynamisk brukernavn
 SERVICE_FILE=/etc/systemd/system/ringeklokke.service
 
-# Sjekk om tjenestefilen allerede finnes og oppdater den hvis nødvendig
-if [ ! -f "$SERVICE_FILE" ]; then
-    echo "Oppretter systemd-tjeneste for ringeklokke.py..."
-    sudo bash -c "cat > $SERVICE_FILE" <<EOF
+echo "Oppretter eller oppdaterer systemd-tjenesten for ringeklokke.py..."
+sudo bash -c "cat > $SERVICE_FILE" <<EOF
 [Unit]
 Description=Ringeklokke Service
 After=network.target
@@ -70,13 +68,10 @@ RestartSec=5
 [Install]
 WantedBy=multi-user.target
 EOF
-    sudo systemctl daemon-reload
-    sudo systemctl enable ringeklokke.service
-else
-    echo "Ringeklokke-tjenesten er allerede konfigurert."
-fi
 
-# Start tjenesten på nytt for å sikre oppdaterte innstillinger
+# Oppdater systemd og aktiver tjenesten
+sudo systemctl daemon-reload
+sudo systemctl enable ringeklokke.service
 sudo systemctl restart ringeklokke.service
 echo "Ringeklokke service er installert og startet."
 
@@ -133,7 +128,13 @@ chmod +x $DESKTOP_FILE
 
 # Deaktiver sleep og skjermsparer (unattended mode)
 gsettings set org.gnome.desktop.session idle-delay 0
+
+# Sjekk om xset fungerer, og deaktiver DPMS bare hvis det er støttet
 xset s off
-xset -dpms
+if xset -q | grep -q "DPMS is Enabled"; then
+    xset -dpms
+else
+    echo "DPMS setting is not supported on this system, skipping."
+fi
 
 echo "Installasjonen er fullført. En snarvei for å starte webappen er opprettet på skrivebordet."
