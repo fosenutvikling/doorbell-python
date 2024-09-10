@@ -58,7 +58,7 @@ Description=Ringeklokke Service
 After=network.target
 
 [Service]
-User=pi
+User=$(whoami)
 WorkingDirectory=$(pwd)
 ExecStart=$(pwd)/ringeklokke_env/bin/python3 $(pwd)/ringeklokke.py
 Restart=always
@@ -82,7 +82,7 @@ cat <<EOL > start_webapp.sh
 # Script to start webapp.py
 
 # Naviger til prosjektmappen
-cd /home/pi/doorbell-python
+cd $(pwd)
 
 # Aktiver det virtuelle miljøet
 source ringeklokke_env/bin/activate
@@ -98,15 +98,15 @@ EOL
 # Gjør start_webapp.sh kjørbar
 chmod +x start_webapp.sh
 
-# Finn riktig skrivebordskatalog (sjekker både Desktop og Skrivebord)
-DESKTOP_DIR=""
-if [ -d "/home/pi/Desktop" ]; then
-    DESKTOP_DIR="/home/pi/Desktop"
-elif [ -d "/home/pi/Skrivebord" ]; then
-    DESKTOP_DIR="/home/pi/Skrivebord"
-else
-    # Opprett Desktop hvis ingen eksisterer
-    DESKTOP_DIR="/home/pi/Desktop"
+# Finn riktig skrivebordskatalog basert på brukerens språkinnstilling
+DESKTOP_DIR="$HOME/Desktop"
+if [ ! -d "$DESKTOP_DIR" ]; then
+    DESKTOP_DIR="$HOME/Skrivebord"
+fi
+
+# Sjekk om skrivebordskatalogen finnes, hvis ikke opprett en av dem
+if [ ! -d "$DESKTOP_DIR" ]; then
+    echo "Oppretter skrivebordskatalogen $DESKTOP_DIR..."
     mkdir -p "$DESKTOP_DIR"
 fi
 
@@ -117,7 +117,7 @@ cat <<EOL > $DESKTOP_FILE
 [Desktop Entry]
 Name=Start Web App
 Comment=Start the web application to edit config
-Exec=/home/pi/doorbell-python/start_webapp.sh
+Exec=$(pwd)/start_webapp.sh
 Icon=utilities-terminal
 Terminal=false
 Type=Application
