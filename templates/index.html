@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Config Editor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div id="status-page" class="page">
+            <div class="bell">
+                <img src="{{ url_for('static', filename='bell.png') }}" alt="Bell Icon" class="status-icon">
+                <p class="status-text">{{ 'Connected' if websocket_running else 'Disconnected' }}</p>
+                <p id="last-pressed-info" class="status-detail">Ingen knapp trykket ennå.</p> <!-- New element to show button press info -->
+            </div>
+            <div class="footer">
+                <p class="version-text">Version 1.0</p>
+                <img src="{{ url_for('static', filename='cog.png') }}" alt="Config Icon" class="config-icon" onclick="showConfigPage()">
+            </div>
+        </div>
+
+        <div id="config-page" class="page" style="display: none;">
+            <div>
+                <h1>Konfigurasjon</h1>
+                <form action="{{ url_for('update_config') }}" method="POST" class="config-form" onsubmit="return handleFormSubmit()">
+                    <div class="form-group">
+                        <label for="serverUrl">WebSocket Server URL:</label>
+                        <input type="text" id="serverUrl" name="serverUrl" value="{{ config.serverUrl }}" class="input-field">
+                    </div>
+
+                    <h2>Buttons</h2>
+                    <div id="buttons" class="button-config-container">
+                        {% for button in config.buttons %}
+                            <div class="button-config">
+								<div class="button-row">
+									<div class="button-id">
+										<label>ID på knapp</label>
+										<input type="text" name="buttonId" value="{{ button.buttonId }}" class="input-field">
+									</div>
+									<div class="button-name">
+										<label>Navn</label>
+										<input type="text" name="buttonName" value="{{ button.buttonName }}" class="input-field">
+									</div>
+								</div>
+
+								<div class="button-row">
+									<div class="button-sound">
+										<label>Ringelyd</label>
+										<select name="buttonSound" class="input-field sound-select" style="width:85%;">
+											{% for sound in sounds %}
+												<option value="sounds/{{ sound }}" {% if button.sound == "sounds/" + sound %}selected{% endif %}>{{ sound }}</option>
+											{% endfor %}
+										</select>
+										<button type="button" class="test-sound-button btn btn-secondary" onclick="testSound(this)">
+                                            <img src="{{ url_for('static', filename='play_white.png') }}" alt="Play Icon" class="icon">
+                                        </button>
+									</div>
+									<div class="button-remove">
+                                		<button type="button" class="remove-button btn btn-danger" onclick="removeButton(this)">
+                                            <img src="{{ url_for('static', filename='trash_white.png') }}" alt="Trash Icon" class="icon">
+                                        </button>
+									</div>
+								</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+					<div class="buttons-footer">
+						<div>
+                    		<button type="button" class="add-button btn btn-primary" onclick="addButton()">Add Button</button>
+						</div>
+						<div style="text-align:right;">
+                    		<button type="submit" class="submit-button btn btn-success">Save Changes</button>
+						</div>
+					</div>
+                </form>
+
+                <h2 style="margin-top:50px;">WebSocket Control</h2>
+                <p>Status: <span class="{{ 'status-running' if websocket_running else 'status-stopped' }}">{{ 'Running' if websocket_running else 'Stopped' }}</span></p>
+                {% if connection_error %}
+                    <p class="error-message">{{ connection_error }}</p>
+                {% endif %}
+
+                <div class="websocket-controls">
+                    <div>
+                        <form action="{{ url_for('start_websocket_route') }}" method="POST">
+                            <button type="submit" class="control-button btn btn-warning" {% if websocket_running %}disabled{% endif %}>Start WebSocket</button>
+                        </form>
+                    </div>
+                    <div style="margin-left:15px;">
+                        <form action="{{ url_for('stop_websocket_route') }}" method="POST">
+                            <button type="submit" class="control-button btn btn-danger" {% if not websocket_running %}disabled{% endif %}>Stop WebSocket</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
+	<script>
+		const socket = io(); // Initialize SocketIO connection
+
+		// Receive button press updates from the server
+		socket.on('button_press', (data) => {
+			const info = `Knapp "${data.button_name}" ble trykket på ${data.time}`;
+			document.getElementById('last-pressed-info').textContent = info;
+		});
+
+		function addButton() {
+			const container = document.getElementById('buttons');
+			const div = document.createElement('div');
+			div.classList.add('button-config');
+			div.innerHTML = `
+				<div class="button-row">
+					<div class="button-id">
+						<label>ID på knapp</label>
+						<input type="text" name="buttonId" class="input-field">
+					</div>
+					<div class="button-name">
+						<label>Navn</label>
+						<input type="text" name="buttonName" class="input-field">
+					</div>
+				</div>
+
+				<div class="button-row">
+					<div class="button-sound">
+						<label>Ringelyd</label>
+						<select name="buttonSound" class="input-field sound-select" style="width:85%;">
+							{% for sound in sounds %}
+								<option value="sounds/{{ sound }}">{{ sound }}</option>
+							{% endfor %}
+						</select>
+						<button type="button" class="test-sound-button btn btn-secondary" onclick="testSound(this)">
+							<img src="{{ url_for('static', filename='play_white.png') }}" alt="Play Icon" class="icon">
+						</button>
+					</div>
+					<div class="button-remove">
+						<button type="button" class="remove-button btn btn-danger" onclick="removeButton(this)">
+							<img src="{{ url_for('static', filename='trash_white.png') }}" alt="Trash Icon" class="icon">
+						</button>
+					</div>
+				</div>
+			`;
+			container.appendChild(div);
+		}
+
+		function removeButton(button) {
+			const buttonContainer = button.closest('.button-config');
+			if (buttonContainer) {
+				buttonContainer.remove();
+			}
+		}
+
+		function showConfigPage() {
+			document.getElementById('status-page').style.display = 'none';
+			document.getElementById('config-page').style.display = 'block';
+		}
+
+		function showStatusPage() {
+			document.getElementById('status-page').style.display = 'block';
+			document.getElementById('config-page').style.display = 'none';
+		}
+
+		function handleFormSubmit() {
+			setTimeout(() => {
+				showStatusPage();
+			}, 100);
+			return true;
+		}
+
+		function testSound(button) {
+			const select = button.previousElementSibling; // Find the select element before the button
+			const sound = select.value.split('/').pop(); // Get only the filename
+			const audio = new Audio(`/sounds/${sound}`);
+			audio.play();
+		}
+	</script>
+
+
+</body>
+</html>

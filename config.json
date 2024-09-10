@@ -1,0 +1,20 @@
+{
+    "serverUrl": "ws://161.35.87.4:8082",
+    "buttons": [
+        {
+            "buttonId": "wM9IceDRRMC",
+            "buttonName": "Testknapp 1a",
+            "sound": "sounds/doorbell.mp3"
+        },
+        {
+            "buttonId": "HwWoZWMiPA6",
+            "buttonName": "Testknapp 2b",
+            "sound": "sounds/chime.mp3"
+        },
+        {
+            "buttonId": "04GF3ztgCl6",
+            "buttonName": "Testknapp 3c",
+            "sound": "sounds/chime.mp3"
+        }
+    ]
+}
