@@ -46,7 +46,10 @@ fi
 source ringeklokke_env/bin/activate
 pip install -r requirements.txt
 
-# Opprett systemd-tjeneste for ringeklokke.py
+# Dynamisk finn brukernavnet som kjører skriptet
+CURRENT_USER=$(whoami)
+
+# Opprett systemd-tjeneste for ringeklokke.py med dynamisk brukernavn
 SERVICE_FILE=/etc/systemd/system/ringeklokke.service
 
 # Sjekk om tjenestefilen allerede finnes og oppdater den hvis nødvendig
@@ -58,10 +61,11 @@ Description=Ringeklokke Service
 After=network.target
 
 [Service]
-User=$(whoami)
+User=$CURRENT_USER
 WorkingDirectory=$(pwd)
 ExecStart=$(pwd)/ringeklokke_env/bin/python3 $(pwd)/ringeklokke.py
 Restart=always
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
