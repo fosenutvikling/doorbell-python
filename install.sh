@@ -98,8 +98,20 @@ EOL
 # Gjør start_webapp.sh kjørbar
 chmod +x start_webapp.sh
 
+# Finn riktig skrivebordskatalog (sjekker både Desktop og Skrivebord)
+DESKTOP_DIR=""
+if [ -d "/home/pi/Desktop" ]; then
+    DESKTOP_DIR="/home/pi/Desktop"
+elif [ -d "/home/pi/Skrivebord" ]; then
+    DESKTOP_DIR="/home/pi/Skrivebord"
+else
+    # Opprett Desktop hvis ingen eksisterer
+    DESKTOP_DIR="/home/pi/Desktop"
+    mkdir -p "$DESKTOP_DIR"
+fi
+
 # Opprett en skrivebordssnarvei til start_webapp.sh
-DESKTOP_FILE=/home/pi/Desktop/start_webapp.desktop
+DESKTOP_FILE="$DESKTOP_DIR/start_webapp.desktop"
 
 cat <<EOL > $DESKTOP_FILE
 [Desktop Entry]
